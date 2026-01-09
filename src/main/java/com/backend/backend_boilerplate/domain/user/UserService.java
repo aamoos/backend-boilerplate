@@ -22,15 +22,6 @@ public class UserService {
         return userRepository.search(cond, pageable);
     }
 
-    @Transactional
-    public Long create(String email, String name, String password) {
-        if (userRepository.existsByEmail(email)){
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        User user = new User(email, name, password);
-        return userRepository.save(user).getId();
-    }
-
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {

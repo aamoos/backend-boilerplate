@@ -3,6 +3,7 @@ package com.backend.backend_boilerplate.domain.auth;
 import com.backend.backend_boilerplate.domain.auth.dto.AuthTokens;
 import com.backend.backend_boilerplate.domain.auth.dto.LoginRequest;
 import com.backend.backend_boilerplate.domain.auth.dto.SignupRequest;
+import com.backend.backend_boilerplate.domain.user.Role;
 import com.backend.backend_boilerplate.domain.user.User;
 import com.backend.backend_boilerplate.domain.user.UserRepository;
 import com.backend.backend_boilerplate.global.exception.BusinessException;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +32,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         String encoded = passwordEncoder.encode(req.getPassword());
-        User user = new User(req.getEmail(), req.getName(), encoded);
+        User user = new User(req.getEmail(), req.getName(), encoded, Role.USER);
         return userRepository.save(user).getId();
     }
 
@@ -41,7 +44,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String access = jwtProvider.createAccessToken(user.getEmail());
+        String access = jwtProvider.createAccessToken(user.getEmail(), List.of("ROLE_" + user.getRole().name()));
         String refresh = jwtProvider.createRefreshToken(user.getEmail());
 
         // 기존 토큰 전부 삭제(단일 디바이스 정책) — 다중 디바이스면 저장만 하고 revoke 전략 변경
@@ -78,7 +81,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        String newAccess = jwtProvider.createAccessToken(email);
+        String newAccess = jwtProvider.createAccessToken(email, List.of("ROLE_" + user.getRole().name()));
         String newRefresh = jwtProvider.createRefreshToken(email);
 
         RefreshToken newEntity = new RefreshToken(

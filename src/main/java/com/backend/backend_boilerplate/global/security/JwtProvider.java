@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtProvider {
@@ -28,16 +29,25 @@ public class JwtProvider {
         this.refreshDays = refreshDays;
     }
 
-    public String createAccessToken(String subject) {
+    public String createAccessToken(String subject, List<String> roles) {
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(expMinutes * 60);
 
         return Jwts.builder()
                 .subject(subject)
+                .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(exp))
                 .signWith(key)
                 .compact();
+    }
+
+    public List<String> getRoles(String token) {
+        Object v = parseClaims(token).get("roles");
+        if (v instanceof List<?> list) {
+            return list.stream().map(String::valueOf).toList();
+        }
+        return List.of();
     }
 
     public String getSubject(String token) {
