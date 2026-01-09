@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: backend_boilerplate_pg
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: backend_boilerplate
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
