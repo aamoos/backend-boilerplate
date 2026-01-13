@@ -19,8 +19,10 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
     @Override
     public Page<User> search(UserSearchCond cond, Pageable pageable) {
+
         List<User> content = queryFactory
                 .selectFrom(user)
+                .join(user)
                 .where(
                         nameContains(cond.getNameKeyword()),
                         emailContains(cond.getEmailKeyword())
